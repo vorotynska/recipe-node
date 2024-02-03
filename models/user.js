@@ -1,10 +1,8 @@
-const Subscriber = require("./subscriber")
-
 const mongoose = require("mongoose"),
     {
         Schema
-    } = mongoose,
-
+    } = require("mongoose"),
+    Subscriber = require("./subscriber"),
     userSchema = new Schema({
         name: {
             first: {
@@ -19,12 +17,11 @@ const mongoose = require("mongoose"),
         email: {
             type: String,
             required: true,
-            lowercase: true,
             unique: true
         },
         zipCode: {
             type: Number,
-            min: [1000, "Zip code too short"],
+            min: [10000, "Zip code too short"],
             max: 99999
         },
         password: {
@@ -43,10 +40,9 @@ const mongoose = require("mongoose"),
         timestamps: true
     });
 
-userSchema.virtual("fullName")
-    .get(function () {
-        return `${this.name.first} ${this.name.last}`;
-    });
+userSchema.virtual("fullName").get(function () {
+    return `${this.name.first} ${this.name.last}`;
+});
 
 userSchema.pre("save", function (next) {
     let user = this;
@@ -66,6 +62,6 @@ userSchema.pre("save", function (next) {
     } else {
         next();
     }
-})
+});
 
 module.exports = mongoose.model("User", userSchema);

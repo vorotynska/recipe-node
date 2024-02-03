@@ -44,7 +44,7 @@ module.exports = {
     },
 
     redirectView: (req, res, next) => {
-        letredirectPath = res.locals.redirect;
+        let redirectPath = res.locals.redirect;
         if (redirectPath) res.redirect(redirectPath);
         else next();
     },
@@ -90,19 +90,35 @@ module.exports = {
                 password: req.body.password,
                 zipCode: req.body.zipCode
             };
-
+        console.log(userParams);
         User.findByIdAndUpdate(userId, {
                 $set: userParams
+            }, {
+                new: true
             })
             .then(user => {
                 res.locals.redirect = `/users/${userId}`;
                 res.locals.user = user;
                 next();
+                console.log(user)
             })
             .catch(error => {
                 console.log(`Error updating user by ID: ${error.message}`);
                 next(error);
             });
-    }
+    },
 
+    delete: (req, res, next) => {
+        let userId = req.params._id;
+        console.log(userId);
+        User.findByIdAndDelete(userId)
+            .then(() => {
+                res.locals.redirect = "/users";
+                next();
+            })
+            .catch(error => {
+                console.log(`Error deleting user by ID: ${error.message}`);
+                next();
+            });
+    }
 };
