@@ -8,6 +8,13 @@ mongoose.Promise = global.Promise;
 const path = require("path");
 require('dotenv').config();
 const methodOverride = require("method-override");
+const expressSession = require("express-session");
+const cookieParser = require("cookie-parser");
+const connectFlash = require("connect-flash");
+const {
+    body,
+    validationResult
+} = require("express-validator");
 
 const subscribersController = require("./controllers/subscribeController");
 const usersController = require("./controllers/usersController");
@@ -30,8 +37,9 @@ app.use(
     })
 );
 app.use(express.json());
-app.use(express.static("public"));
+//router.use(expressValidator.validator());
 
+app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.use(layouts);
 
@@ -40,6 +48,21 @@ app.use("/", router);
 router.use(methodOverride("_method", {
     method: ["POST", "GET"]
 }))
+
+router.use(cookieParser("secret_passcode"));
+router.use(expressSession({
+    secret: "secret_passcode",
+    cookie: {
+        maxAge: 4000000
+    },
+    resave: false,
+    saveUninitialized: false
+}));
+router.use(connectFlash());
+router.use((req, res, next) => {
+    res.locals.flashMessages = req.flash();
+    next();
+});
 
 app.get("/", (req, res) => {
     res.send("Welcome to Confetti Cuisine!");
@@ -50,12 +73,15 @@ app.get("/contact", homeController.showSignUp);
 app.post("/contact", homeController.postedSignUpForm);
 
 router.get("/users", usersController.index, usersController.indexView);
+router.get("/users/login", usersController.login);
+router.post("/users/login", usersController.authenticate,
+    usersController.redirectView);
 router.get("/users/new", usersController.new);
-router.post("/users/create", usersController.create,
+router.post("/users/create", usersController.validate, usersController.create,
     usersController.redirectView);
 router.get("/users/:id", usersController.show, usersController.showView);
 router.get("/users/:id/edit", usersController.edit);
-router.put("/users/:id/update", usersController.update,
+router.put("/users/:id/update", usersController.validate, usersController.update,
     usersController.redirectView);
 router.delete("/users/:id/delete", usersController.delete, usersController.redirectView);
 

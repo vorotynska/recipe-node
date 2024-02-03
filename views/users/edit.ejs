@@ -15,7 +15,7 @@
   user.email %>" placeholder="Email address" required>
      <label for="inputZipCode">Zip Code</label>
      <input type="text" name="zipCode" id="inputZipCode"
-  pattern="\d*" value="<%= user.zipCode %>" placeholder="Zip
+  pattern="[0-9]{5}" value="<%= user.zipCode %>" placeholder="Zip
   Code" required>
      <button type="submit">Update</button>
    </form>

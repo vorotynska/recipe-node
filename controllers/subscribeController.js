@@ -1,51 +1,12 @@
-/*const Subscriber = require("../models/subscriber");
+const Subscriber = require("../models/subscriber");
 
-exports.getAllSubscribers = (req, res) => {
-    Subscriber.find({})
-        .exec()
-        .then((subscribers) => {
-            res.render("subscribers", {
-                subscribers: subscribers
-            });
-        })
-        .catch((error) => {
-            console.log(error.message);
-            return [];
-        })
-        .then(() => {
-            console.log("promise complete");
-        });
-};
-
-exports.getSubscriptionPage = (req, res) => {
-    res.render("contact");
-};
-
-exports.saveSubscriber = (req, res) => {
-    let newSubscriber = new Subscriber({
-        name: req.body.name,
-        email: req.body.email,
-        zipCode: req.body.zipCode
-    });
-    console.log(newSubscriber);
-
-    newSubscriber.save()
-        .then(() => {
-            res.render("thanks");
-        })
-        .catch(error => {
-            res.send(error);
-        });
-};  */
-
-const Subscriber = require("../models/subscriber"),
-    getSubscriberParams = (body) => {
-        return {
-            name: body.name,
-            email: body.email,
-            zipCode: parseInt(body.zipCode)
-        };
+const getSubscriberParams = (body) => {
+    return {
+        name: body.name,
+        email: body.email,
+        zipCode: parseInt(body.zipCode)
     };
+};
 
 module.exports = {
     index: (req, res, next) => {

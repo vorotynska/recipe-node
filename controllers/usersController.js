@@ -1,4 +1,20 @@
 const User = require("../models/user");
+const {
+    body,
+    validationResult
+} = require("express-validator");
+
+const getUserParams = body => {
+    return {
+        name: {
+            first: body.first,
+            last: body.last
+        },
+        email: body.email,
+        password: body.password,
+        zipCode: body.zipCode
+    };
+};
 
 module.exports = {
     index: (req, res, next) => {
@@ -13,7 +29,82 @@ module.exports = {
             });
     },
     indexView: (req, res) => {
-        res.render("users/index");
+        res.render("users/index", {
+            flashMessages: {
+                success: "Loaded all users!"
+            }
+        });
+    },
+
+    validate: [
+        body('email')
+        .normalizeEmail({
+            all_lowercase: true
+        })
+        .trim()
+        .isEmail()
+        .withMessage('Email is invalid'),
+
+        body('zipCode')
+        .notEmpty().withMessage('Zip code cannot be empty')
+        .isInt().withMessage('Zip code must be a number')
+        .isLength({
+            min: 5,
+            max: 5
+        }).withMessage('Zip code must be 5 digits'),
+        // .equals(req.body.zipCode).withMessage('Zip code does not match'),
+
+        body('password')
+        .notEmpty()
+        .withMessage('Password cannot be empty'),
+
+        (req, res, next) => {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                const messages = errors.array().map(e => e.msg);
+                req.skip = true;
+                req.flash('error', messages.join(' and '));
+                res.locals.redirect = '/users/new';
+                next();
+            } else {
+                next();
+            }
+        }
+    ],
+
+    login: (req, res) => {
+        res.render("users/login");
+    },
+
+    authenticate: (req, res, next) => {
+        User.findOne({
+                email: req.body.email
+            })
+            .then(user => {
+                if (user) {
+                    user.passwordComparison(req.body.password)
+                        .then(passwordsMatch => {
+                            if (passwordsMatch) {
+                                res.locals.redirect = `/users/${user._id}`;
+                                req.flash("success", `${user.fullName}'s logged in
+       successfully!`);
+                                res.locals.user = user;
+                            } else {
+                                req.flash("error", "Failed to log in user account: Incorrect Password.");
+                                res.locals.redirect = "/users/login";
+                            }
+                            next();
+                        });
+                } else {
+                    req.flash("error", "Failed to log in user account: User account not found.");
+                    res.locals.redirect = "/users/login";
+                    next();
+                }
+            })
+            .catch(error => {
+                console.log(`Error logging in user: ${error.message}`);
+                next(error);
+            });
     },
 
     new: (req, res) => {
@@ -21,25 +112,23 @@ module.exports = {
     },
 
     create: (req, res, next) => {
-        let userParams = {
-            name: {
-                first: req.body.first,
-                last: req.body.last
-            },
-            email: req.body.email,
-            password: req.body.password,
-            zipCode: req.body.zipCode
-        };
+        let userParams = getUserParams(req.body);
 
         User.create(userParams)
             .then(user => {
+                req.flash("success", `${user.fullName}'s account created successfully`);
                 res.locals.redirect = "/users";
                 res.locals.user = user;
                 next();
             })
             .catch(error => {
-                console.log(`Error saving user: ${error.message}`);
-                next(error);
+                console.log(` Error saving user: $ {error.message}`);
+                res.locals.redirect = "/users/new";
+                req.flash(
+                    "error",
+                    `Failed to create user account because:  ${error.message}.`
+                );
+                next();
             });
     },
 
