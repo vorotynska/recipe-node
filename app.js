@@ -48,10 +48,6 @@ app.get("/", (req, res) => {
 app.get("/courses", homeController.showCourses);
 app.get("/contact", homeController.showSignUp);
 app.post("/contact", homeController.postedSignUpForm);
-//app.get("/subscribers", subscribersController.getAllSubscribers);
-//app.get("/contact", subscribersController.getSubscriptionPage);
-//app.post("/subscribe", subscribersController.saveSubscriber);
-
 
 router.get("/users", usersController.index, usersController.indexView);
 router.get("/users/new", usersController.new);
