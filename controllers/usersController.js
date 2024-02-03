@@ -109,7 +109,7 @@ module.exports = {
     },
 
     delete: (req, res, next) => {
-        let userId = req.params._id;
+        let userId = req.params.id;
         console.log(userId);
         User.findByIdAndDelete(userId)
             .then(() => {
@@ -118,7 +118,7 @@ module.exports = {
             })
             .catch(error => {
                 console.log(`Error deleting user by ID: ${error.message}`);
-                next();
+                next(error);
             });
     }
 };
