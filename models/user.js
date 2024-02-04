@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const passportLocalMongoose = require("passport-local-mongoose");
 const mongoose = require("mongoose"),
     {
         Schema
@@ -25,10 +26,10 @@ const mongoose = require("mongoose"),
             min: [10000, "Zip code too short"],
             max: 99999
         },
-        password: {
-            type: String,
-            required: true
-        },
+        // password: {
+        //     type: String,
+        //     required: true
+        // },
         courses: [{
             type: Schema.Types.ObjectId,
             ref: "Course"
@@ -40,6 +41,11 @@ const mongoose = require("mongoose"),
     }, {
         timestamps: true
     });
+
+userSchema.plugin(passportLocalMongoose, {
+    usernameField: "email"
+});
+
 
 userSchema.virtual("fullName").get(function () {
     return `${this.name.first} ${this.name.last}`;
@@ -65,6 +71,9 @@ userSchema.pre("save", function (next) {
     }
 });
 
+module.exports = mongoose.model("User", userSchema);
+
+/*
 userSchema.pre("save", function (next) {
     let user = this;
 
@@ -82,5 +91,4 @@ userSchema.methods.passwordComparison = function (inputPassword) {
     let user = this;
     return bcrypt.compare(inputPassword, user.password);
 };
-
-module.exports = mongoose.model("User", userSchema);
+*/

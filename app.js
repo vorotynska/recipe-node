@@ -8,6 +8,7 @@ mongoose.Promise = global.Promise;
 const path = require("path");
 require('dotenv').config();
 const methodOverride = require("method-override");
+const passport = require("passport");
 const expressSession = require("express-session");
 const cookieParser = require("cookie-parser");
 const connectFlash = require("connect-flash");
@@ -16,6 +17,7 @@ const {
     validationResult
 } = require("express-validator");
 
+const User = require("./models/user");
 const subscribersController = require("./controllers/subscribeController");
 const usersController = require("./controllers/usersController");
 const router = express.Router()
@@ -37,7 +39,6 @@ app.use(
     })
 );
 app.use(express.json());
-//router.use(expressValidator.validator());
 
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -58,9 +59,30 @@ router.use(expressSession({
     resave: false,
     saveUninitialized: false
 }));
+router.use(passport.initialize());
+router.use(passport.session());
+passport.use(User.createStrategy());
+//passport.serializeUser(User.serializeUser);
+//passport.deserializeUser(User.deserializeUser);
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id);
+        done(null, user);
+    } catch (err) {
+        done(err);
+    };
+});
+
+
 router.use(connectFlash());
 router.use((req, res, next) => {
     res.locals.flashMessages = req.flash();
+    res.locals.loggedIn = req.isAuthenticated();
+    res.locals.currentUser = req.user;
     next();
 });
 
@@ -73,9 +95,11 @@ app.get("/contact", homeController.showSignUp);
 app.post("/contact", homeController.postedSignUpForm);
 
 router.get("/users", usersController.index, usersController.indexView);
+
 router.get("/users/login", usersController.login);
-router.post("/users/login", usersController.authenticate,
-    usersController.redirectView);
+router.post("/users/login", usersController.authenticate);
+router.get("/users/logout", usersController.logout, usersController.redirectView);
+
 router.get("/users/new", usersController.new);
 router.post("/users/create", usersController.validate, usersController.create,
     usersController.redirectView);

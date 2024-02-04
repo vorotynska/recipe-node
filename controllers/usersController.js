@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const passport = require("passport");
 const {
     body,
     validationResult
@@ -15,6 +16,7 @@ const getUserParams = body => {
         zipCode: body.zipCode
     };
 };
+
 
 module.exports = {
     index: (req, res, next) => {
@@ -75,36 +77,88 @@ module.exports = {
     login: (req, res) => {
         res.render("users/login");
     },
+    /*
+      authenticate: (req, res, next) => {
+          User.findOne({
+                  email: req.body.email
+              })
+              .then(user => {
+                  if (user) {
+                      user.passwordComparison(req.body.password)
+                          .then(passwordsMatch => {
+                              if (passwordsMatch) {
+                                  res.locals.redirect = `/users/${user._id}`;
+                                  req.flash("success", `${user.fullName}'s logged in
+         successfully!`);
+                                  res.locals.user = user;
+                              } else {
+                                  req.flash("error", "Failed to log in user account: Incorrect Password.");
+                                  res.locals.redirect = "/users/login";
+                              }
+                              next();
+                          });
+                  } else {
+                      req.flash("error", "Failed to log in user account: User account not found.");
+                      res.locals.redirect = "/users/login";
+                      next();
+                  }
+              })
+              .catch(error => {
+                  console.log(`Error logging in user: ${error.message}`);
+                  next(error);
+              });
+      },  
+*/
+    authenticate: passport.authenticate("local", {
+        failureRedirect: "/users/login",
+        failureFlash: "Failed to login.",
+        successRedirect: "/",
+        successFlash: "Logged in!"
+    }),
+    /*
+        authenticate: (req, res, next) => {
+            console.log("Request reached the authentication route");
+            console.log(req.body); // Посмотрите, что у вас в теле запроса
+            passport.authenticate("local", {
+                failureRedirect: "/users/login",
+                failureFlash: "Failed to login.",
+                successRedirect: "/",
+                successFlash: "Logged in!"
+            })(req, res, next);
+        }, */
+    /*
+       authenticate: (req, res, next) => {
+           passport.authenticate("local", (err, user, info) => {
+               console.log("Authentication info:", info);
+               if (err) {
+                   console.error(err);
+                   return next(err);
+               }
+               if (!user) {
+                   console.error("Authentication failed:", info.message);
+                   req.flash("error", info.message);
+                   return res.redirect("/users/login");
+               }
+               req.logIn(user, err => {
+                   if (err) {
+                       console.error(err);
+                       return next(err);
+                   }
+                   return res.redirect("/");
+               });
+           })(req, res, next);
+       },
+    */
 
-    authenticate: (req, res, next) => {
-        User.findOne({
-                email: req.body.email
-            })
-            .then(user => {
-                if (user) {
-                    user.passwordComparison(req.body.password)
-                        .then(passwordsMatch => {
-                            if (passwordsMatch) {
-                                res.locals.redirect = `/users/${user._id}`;
-                                req.flash("success", `${user.fullName}'s logged in
-       successfully!`);
-                                res.locals.user = user;
-                            } else {
-                                req.flash("error", "Failed to log in user account: Incorrect Password.");
-                                res.locals.redirect = "/users/login";
-                            }
-                            next();
-                        });
-                } else {
-                    req.flash("error", "Failed to log in user account: User account not found.");
-                    res.locals.redirect = "/users/login";
-                    next();
-                }
-            })
-            .catch(error => {
-                console.log(`Error logging in user: ${error.message}`);
-                next(error);
-            });
+    logout: (req, res, next) => {
+        req.logout((err) => {
+            if (err) {
+                return next(err);
+            }
+        });
+        req.flash("success", "You have been logged out!");
+        res.locals.redirect = "/";
+        next();
     },
 
     new: (req, res) => {
@@ -112,24 +166,23 @@ module.exports = {
     },
 
     create: (req, res, next) => {
-        let userParams = getUserParams(req.body);
+        if (req.skip) return next();
 
-        User.create(userParams)
-            .then(user => {
-                req.flash("success", `${user.fullName}'s account created successfully`);
+        let newUser = new User(getUserParams(req.body));
+
+        User.register(newUser, req.body.password, (error, user) => {
+            if (user) {
+                req.flash("success", `${user.fullName}'s account created
+       successfully!`);
                 res.locals.redirect = "/users";
-                res.locals.user = user;
                 next();
-            })
-            .catch(error => {
-                console.log(` Error saving user: $ {error.message}`);
+            } else {
+                req.flash("error", `Failed to create user account because:
+       ${error.message}.`);
                 res.locals.redirect = "/users/new";
-                req.flash(
-                    "error",
-                    `Failed to create user account because:  ${error.message}.`
-                );
                 next();
-            });
+            }
+        });
     },
 
     redirectView: (req, res, next) => {
