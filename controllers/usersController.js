@@ -115,17 +115,7 @@ module.exports = {
         successRedirect: "/",
         successFlash: "Logged in!"
     }),
-    /*
-        authenticate: (req, res, next) => {
-            console.log("Request reached the authentication route");
-            console.log(req.body); // Посмотрите, что у вас в теле запроса
-            passport.authenticate("local", {
-                failureRedirect: "/users/login",
-                failureFlash: "Failed to login.",
-                successRedirect: "/",
-                successFlash: "Logged in!"
-            })(req, res, next);
-        }, */
+
     /*
        authenticate: (req, res, next) => {
            passport.authenticate("local", (err, user, info) => {

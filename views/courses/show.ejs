@@ -1,0 +1,18 @@
+<h1>Course Data for <%= course.title %></h1>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="text-muted pull-right">
+            <%= course.maxStudents  %>
+          </div>
+          <%= course.title %>
+        </div>
+        <div class="panel-body">
+          <%= course.description %>
+        </div>
+        <div class="panel-body">
+           $ <%= course.cost %>
+          </div>
+      </div>
+    
+          No courses! <a href="/courses/new">Add one!</a>
+        

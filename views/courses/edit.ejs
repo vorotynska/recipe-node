@@ -1,0 +1,15 @@
+
+<div class="container">
+<form action="<%=`/courses/${course._id}/update?_method=PUT` %>" method="POST" role="form">
+    <h2>Create a new course:</h2>
+    <label for="inputTitle">Title</label>
+    <input type="text" name="title" id="inputTitle" value="<%=course.title %>" 
+    placeholder="Title" autofocus class="form-control">
+   <textarea name="description" class="form-control" id="inputDescription"
+   placeholder="Tell us about course!" value="<%= course.description %>"></textarea>
+    <label for="cost">Cost</label>
+    <input type="text" name="cost" id="cost" value="<%= course.cost %>"
+    placeholder="cost" required class="form-control">
+    <button type="submit" class="btn btn-primary">Save</button>
+  </form>
+</div>
