@@ -24,3 +24,9 @@ exports.showSignUp = (req, res) => {
 exports.postedSignUpForm = (req, res) => {
     res.render("thanks");
 };
+
+module.exports = {
+    chat: (req, res) => {
+        res.render("chat");
+    }
+}
