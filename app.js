@@ -20,8 +20,6 @@ const router = require("./routes/index");
 const errorController = require("./controllers/errorController");
 const User = require("./models/user");
 
-require("./controllers/ChatController ")(io);
-
 app.set("port", process.env.PORT || 3000);
 
 mongoose.connect(process.env.DB, {
@@ -85,22 +83,22 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use("/", router)
-
+app.use("/", router);
 app.get("/", (req, res) => {
-    res.send("Welcome to Confetti Cuisine!");
+    res.render("index");
 });
-
 
 app.use(errorController.pageNotFoundError);
 app.use(errorController.internalServerError);
 
-require("./controllers/ChatController ")(io);
 
-app.listen(app.get("port"), () => {
-    console.log(
-        `Server running at http://localhost:${app.get(
+const server = app.listen(app.get("port"), () => {
+        console.log(
+            `Server running at http://localhost:${app.get(
       "port"
     )}`
-    );
-});
+        );
+    }),
+    io = require("socket.io")(server);
+
+require("./controllers/ChatController ")(io);

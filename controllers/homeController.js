@@ -28,5 +28,5 @@ exports.postedSignUpForm = (req, res) => {
 module.exports = {
     chat: (req, res) => {
         res.render("chat");
-    }
+    },
 }
